@@ -27,7 +27,7 @@ func TestSchemaRegistryClient_CreateSchemaWithoutReferences(t *testing.T) {
 	{
 		server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 			responsePayload := schemaResponse{
-				Subject: "test1",
+				Subject: "test1-value",
 				Version: 1,
 				Schema:  "test2",
 				ID:      1,
@@ -45,6 +45,8 @@ func TestSchemaRegistryClient_CreateSchemaWithoutReferences(t *testing.T) {
 				// Test payload
 				assert.Equal(t, bodyToString(req.Body), string(expected))
 				// Send response to be tested
+				rw.Write(response)
+			case "/subjects/test1-value":
 				rw.Write(response)
 			case fmt.Sprintf("/schemas/ids/%d", responsePayload.Version):
 				// Send response to be tested
@@ -88,6 +90,8 @@ func TestSchemaRegistryClient_CreateSchemaWithoutReferences(t *testing.T) {
 				// Test payload
 				assert.Equal(t, bodyToString(req.Body), string(expected))
 				// Send response to be tested
+				rw.Write(response)
+			case "/subjects/test1":
 				rw.Write(response)
 			case fmt.Sprintf("/schemas/ids/%d", responsePayload.Version):
 				// Send response to be tested
@@ -604,69 +608,69 @@ func TestNewSchema(t *testing.T) {
 }
 
 func TestSchemaRequestMarshal(t *testing.T) {
-	tests := map[string]struct{
-		schema string
+	tests := map[string]struct {
+		schema     string
 		schemaType SchemaType
 		references []Reference
-		expected string
+		expected   string
 	}{
 		"avro": {
-			schema: `test2`,
+			schema:     `test2`,
 			schemaType: Avro,
-			expected: `{"schema":"test2"}`,
+			expected:   `{"schema":"test2"}`,
 		},
 		"protobuf": {
-			schema: `test2`,
+			schema:     `test2`,
 			schemaType: Protobuf,
-			expected: `{"schema":"test2","schemaType":"PROTOBUF"}`,
+			expected:   `{"schema":"test2","schemaType":"PROTOBUF"}`,
 		},
 		"json": {
-			schema: `test2`,
+			schema:     `test2`,
 			schemaType: Json,
-			expected: `{"schema":"test2","schemaType":"JSON"}`,
+			expected:   `{"schema":"test2","schemaType":"JSON"}`,
 		},
 		"avro-empty-ref": {
-			schema: `test2`,
+			schema:     `test2`,
 			schemaType: Avro,
 			references: make([]Reference, 0),
-			expected: `{"schema":"test2"}`,
+			expected:   `{"schema":"test2"}`,
 		},
 		"protobuf-empty-ref": {
-			schema: `test2`,
+			schema:     `test2`,
 			schemaType: Protobuf,
 			references: make([]Reference, 0),
-			expected: `{"schema":"test2","schemaType":"PROTOBUF"}`,
+			expected:   `{"schema":"test2","schemaType":"PROTOBUF"}`,
 		},
 		"json-empty-ref": {
-			schema: `test2`,
+			schema:     `test2`,
 			schemaType: Json,
 			references: make([]Reference, 0),
-			expected: `{"schema":"test2","schemaType":"JSON"}`,
+			expected:   `{"schema":"test2","schemaType":"JSON"}`,
 		},
 		"avro-ref": {
-			schema: `test2`,
+			schema:     `test2`,
 			schemaType: Avro,
 			references: []Reference{{Name: "name1", Subject: "subject1", Version: 1}},
-			expected: `{"schema":"test2","references":[{"name":"name1","subject":"subject1","version":1}]}`,
+			expected:   `{"schema":"test2","references":[{"name":"name1","subject":"subject1","version":1}]}`,
 		},
 		"protobuf-ref": {
-			schema: `test2`,
+			schema:     `test2`,
 			schemaType: Protobuf,
 			references: []Reference{{Name: "name1", Subject: "subject1", Version: 1}},
-			expected: `{"schema":"test2","schemaType":"PROTOBUF","references":[{"name":"name1","subject":"subject1","version":1}]}`,
+			expected:   `{"schema":"test2","schemaType":"PROTOBUF","references":[{"name":"name1","subject":"subject1","version":1}]}`,
 		},
 		"json-ref": {
-			schema: `test2`,
+			schema:     `test2`,
 			schemaType: Json,
 			references: []Reference{{Name: "name1", Subject: "subject1", Version: 1}},
-			expected: `{"schema":"test2","schemaType":"JSON","references":[{"name":"name1","subject":"subject1","version":1}]}`,
+			expected:   `{"schema":"test2","schemaType":"JSON","references":[{"name":"name1","subject":"subject1","version":1}]}`,
 		},
 	}
 
 	for name, testData := range tests {
 		t.Run(name, func(t *testing.T) {
 			schemaReq := schemaRequest{
-				Schema: testData.schema,
+				Schema:     testData.schema,
 				SchemaType: testData.schemaType.String(),
 				References: testData.references,
 			}

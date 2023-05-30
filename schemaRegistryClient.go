@@ -402,7 +402,7 @@ func (client *SchemaRegistryClient) CreateSchema(subject string, schema string,
 		return nil, err
 	}
 
-	newSchema, err := client.GetSchema(schemaResp.ID)
+	newSchema, err := client.LookupSchema(subject, schema, schemaType, references...)
 	if err != nil {
 		return nil, err
 	}
